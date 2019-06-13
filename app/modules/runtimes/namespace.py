@@ -20,7 +20,7 @@ import requests
 from flask import request, current_app
 from flask_socketio import Namespace, emit, SocketIO
 
-from app.modules.runtimes.creators import BaseKernelCreator
+from app.modules.runtimes.config_loader import runtime_config_loader
 
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ class EmittedRuntimeEvents:
     STATUS = 'status'
 
 
-class RuntimeNamespace(Namespace):
+class RuntimesNamespace(Namespace):
     def __init__(self):
         super().__init__('/runtimes')
         # Runtime namespace
@@ -45,8 +45,10 @@ class RuntimeNamespace(Namespace):
 
         # Try to find a matching runtime.
         # Runtimes are loaded by reading .unklearn.config files
+        runtime = runtime_config_loader.match_runtime(runtime_def)
 
-        # After reading the config file, find the correct matching runtime using regex.
+        # Use the runtime's Dockerfile.template to generate a dockerfile
+        runtime.docker_file_template
 
         # Use the Dockerfile.template to create the runtime
 

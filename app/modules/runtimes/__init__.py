@@ -5,7 +5,11 @@ __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
 
 def init_app(app, socketio):
 
-    from .namespace import KernelsNamespace
-    from .creators import BaseKernelCreator
+    from .config.loader import runtime_config_loader
+    from .namespace import RuntimesNamespace
 
-    socketio.on_namespace(KernelsNamespace())
+    # Load runtime configurations
+    runtime_config_loader.init_app(app)
+
+    # Add runtimes namespace
+    socketio.on_namespace(RuntimesNamespace())

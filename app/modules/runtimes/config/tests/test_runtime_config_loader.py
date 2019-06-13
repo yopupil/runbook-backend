@@ -5,9 +5,11 @@ import json
 import shutil
 from contextlib import contextmanager
 
-from ..config_loader import RuntimeConfigLoader
+from ..loader import RuntimeConfigLoader
 
 __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
+
+sample_runtime_config = {'name': 'test-runtime', 'image': 'python', 'tag': 'latest'}
 
 @contextmanager
 def create_temporary_runtimes(*configs):
@@ -36,8 +38,30 @@ def test_runtime_config_loader_load_no_install_folder():
 @pytest.mark.runtimes
 def test_runtime_config_loader_load():
     # Make a directory and install dummy runtime
-    with create_temporary_runtimes(('test-runtime', {'name': 'test-runtime'})):
+    with create_temporary_runtimes(('test-runtime', sample_runtime_config)):
 
+        loader = RuntimeConfigLoader()
+        loader.load({
+            'RUNTIME_INSTALLATION_FOLDER': '/tmp/.runtimes'
+        })
+
+        assert len(loader.runtime_configs) == 1
+        assert loader.runtime_configs[0]['name'] == 'test-runtime'
+
+@pytest.mark.unit
+@pytest.mark.runtimes
+def test_runtime_config_loader_invalid_config():
+    with create_temporary_runtimes(('test-runtime', {})):
+        loader = RuntimeConfigLoader()
+        with pytest.raises(Exception):
+            loader.load({
+                'RUNTIME_INSTALLATION_FOLDER': '/tmp/.runtimes'
+            })
+
+@pytest.mark.unit
+@pytest.mark.runtimes
+def test_runtime_config_loader_wrong_config_file_type():
+    with create_temporary_runtimes(('test-runtime', sample_runtime_config), ('incorrect-runtime', 'wrong config')):
         loader = RuntimeConfigLoader()
         loader.load({
             'RUNTIME_INSTALLATION_FOLDER': '/tmp/.runtimes'
@@ -49,8 +73,17 @@ def test_runtime_config_loader_load():
 
 @pytest.mark.unit
 @pytest.mark.runtimes
-def test_runtime_config_loader_incorrect_config():
-    with create_temporary_runtimes(('test-runtime', {'name': 'test-runtime'}), ('incorrect-runtime', 'wrong config')):
+def test_runtime_config_loader_ignore_files():
+    with create_temporary_runtimes(('test-runtime', sample_runtime_config)):
+
+        # Hidden file
+        with open('/tmp/.runtimes/.ignore-runtime', 'w') as f:
+            f.write('test')
+
+        # Regular file
+        with open('/tmp/.runtimes/ignore-runtime', 'w') as f:
+            f.write('test')
+
         loader = RuntimeConfigLoader()
         loader.load({
             'RUNTIME_INSTALLATION_FOLDER': '/tmp/.runtimes'
