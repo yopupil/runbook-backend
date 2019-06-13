@@ -29,6 +29,7 @@ def test_parse_arg_and_default_value(configs_and_parsed):
     ('<bool:a 1=false>', {'dataType': bool, 'arg': 'a_1', 'defaultValue': False})
 ])
 def test_parse_param_config(args):
+    args[1]['raw'] = args[0]
     assert parse_param_config(args[0]) == args[1]
 
 

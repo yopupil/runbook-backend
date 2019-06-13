@@ -1,5 +1,8 @@
 .idea/
 
+# Installed runtimes
+.runtimes/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

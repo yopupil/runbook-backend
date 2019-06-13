@@ -38,9 +38,25 @@ class EmittedRuntimeEvents:
 class RuntimeNamespace(Namespace):
     def __init__(self):
         super().__init__('/runtimes')
+        # Runtime namespace
 
     def on_create_runtime(self, runtime_def):
         """Create a new runtime with the provided data"""
+
+        # Try to find a matching runtime.
+        # Runtimes are loaded by reading .unklearn.config files
+
+        # After reading the config file, find the correct matching runtime using regex.
+
+        # Use the Dockerfile.template to create the runtime
+
+        # Wait for the runtime health to return 200.
+        # Ports => Proxied ports with specified protocol
+        # Proxy: proxy ports from container so that front-end can talk to it via a proxy.
+        # localhost:8763/portals/flask_runtime_id/web => goes to [flask app]
+
+        # Processing dependencies
+
         # Once the container is created, we need to execute commands that are specific to the language and framework.
         # These commands will setup the REPL code.
 
