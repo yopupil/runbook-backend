@@ -1,0 +1,31 @@
+FROM python:3.5.1
+
+# Copy the requirements file onto image
+COPY ./requirements-docker.txt .
+
+# Install dev dependencies
+RUN pip install -r requirements-docker.txt
+
+# Export environment variables
+ENV INTERNAL_API_PUBLISH_PORT 8763
+
+# Expose port
+EXPOSE 8763
+
+# Ensure work directory exists
+RUN mkdir /opt/internal-api
+
+# Copy service files
+COPY . /opt/internal-api
+
+# Copy commands to file
+RUN echo "#!/usr/bin/env bash\npip install -e /opt/libs/*\npip install -r requirements*.txt\npython /opt/internal-api/server.py" >> /opt/runstart.sh
+
+# Add perms
+RUN chmod +x /opt/runstart.sh
+
+# Change working directory
+WORKDIR /opt/internal-api
+
+# Run command to run flask server
+CMD ["/bin/bash", "/opt/runstart.sh"]
