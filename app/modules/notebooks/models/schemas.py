@@ -12,8 +12,8 @@ class NotebookSchema(Schema):
     id = fields.String(required=True)
     name = fields.String(required=True)
     description = fields.String(missing='')
-    created_at = JSDateTime('iso8601')
-    updated_at = JSDateTime('iso8601')
+    created_at = JSDateTime('iso8601', allow_none=True)
+    updated_at = JSDateTime('iso8601', allow_none=True)
 
     @post_load
     def make_notebook(self, data):

@@ -1,6 +1,8 @@
 # coding: utf8
 import os
+from datetime import datetime
 
+from app.modules.notebooks.models import Notebook
 from .base import INotebookStoreAdapter
 
 __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
@@ -17,18 +19,20 @@ class FileStorageAdapter(INotebookStoreAdapter):
     def _get_file_path(self, notebook_id):
         return os.path.join(self.notebooks_dir, notebook_id)
 
-    def create(self, payload):
+    def create(self, notebook: Notebook) -> Notebook:
         """Create a new notebook on disk"""
-        if 'id' not in payload:
+        if notebook.id is None:
             raise NotebookStorageException('A notebook must have an id to be saved.')
-        file_path = self._get_file_path(payload['id'])
+        file_path = self._get_file_path(notebook.id)
         if os.path.exists(file_path):
             raise NotebookStorageException('Another notebook already exists with the same id.')
         else:
+            notebook.created_at = datetime.now()
             with open(file_path, 'w') as f:
-                f.write(self.schema.dumps(payload))
+                f.write(self.schema.dumps(notebook))
+        return notebook
 
-    def get(self, notebook_id):
+    def get(self, notebook_id) -> Notebook:
         """Get a notebook by its id"""
         file_path = self._get_file_path(notebook_id)
         if os.path.exists(file_path):
@@ -37,7 +41,7 @@ class FileStorageAdapter(INotebookStoreAdapter):
         else:
             raise NotebookStorageException('Cannot find a notebook with id {}'.format(notebook_id))
 
-    def save(self, notebook_id, payload, partial=True):
+    def save(self, notebook_id, payload, partial=True) -> Notebook:
         """Save a notebook"""
         if partial is True:
             doc = self.get(notebook_id)
@@ -53,8 +57,11 @@ class FileStorageAdapter(INotebookStoreAdapter):
             else:
                 doc = payload
         file_path = self._get_file_path(notebook_id)
+        doc.updated_at = datetime.now()
         with open(file_path, 'w') as f:
             f.write(self.schema.dumps(doc))
+
+        return doc
 
     def delete(self, notebook_id):
         """Delete notebook"""

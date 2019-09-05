@@ -24,7 +24,7 @@ class Notebook:
     updated_at: datetime
         The datetime corresponding to the point where notebook was last updated at.
     """
-    def __init__(self, id=None, name=None, description=None,
+    def __init__(self, id=None, name=None, description='',
                  created_at=None, updated_at=None):
         self.id = id
         self.name = name

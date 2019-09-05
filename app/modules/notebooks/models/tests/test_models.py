@@ -41,9 +41,11 @@ def test_notebook_model_merge():
     n.merge({
         'id': 'bookey',
         'name': 'falsey',
-        'created_at': second_dt
+        'created_at': second_dt,
+        'updated_at': second_dt
     })
 
     assert n.name == 'falsey'
     assert n.id == 'foo', 'id must not change after merge'
     assert n.created_at == dt, 'created_at date must not change after merge'
+    assert n.updated_at == second_dt

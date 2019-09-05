@@ -1,6 +1,8 @@
 # coding: utf8
 import abc
 
+from app.modules.notebooks.models import Notebook
+
 __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
 
 
@@ -20,12 +22,12 @@ class INotebookStoreAdapter(metaclass=abc.ABCMeta):
         self.schema = schema
 
     @abc.abstractmethod
-    def get(self, notebook_id):
+    def get(self, notebook_id) -> Notebook:
         """Get a notebook by its id."""
         pass
 
     @abc.abstractmethod
-    def create(self, payload):
+    def create(self, payload: Notebook) -> Notebook:
         """Create a new notebook.
 
         Parameters
@@ -40,7 +42,7 @@ class INotebookStoreAdapter(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def save(self, notebook_id, payload, partial=True):
+    def save(self, notebook_id, payload, partial=True) -> Notebook:
         """Save a part of the notebook
 
         Parameters
