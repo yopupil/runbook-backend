@@ -1,5 +1,6 @@
 # coding: utf8
 import os
+import re
 import json
 from marshmallow.exceptions import ValidationError
 
@@ -23,6 +24,31 @@ class RuntimeConfigLoader:
     def init_app(self, app):
         """Initialize the loader."""
         self.load(app.config)
+
+    @staticmethod
+    def get_subset(source, target):
+        """Return only items in source that are present in target.
+
+        If there are no matches, full object is returned.
+
+        Example
+        >>> get_subset(['a', 'b'], ['b'])
+        >>> ['b']
+
+        >>> get_subset(['a', 'b'], ['c'])
+        >>> ['a', 'b']
+        """
+        final = list()
+        for item in target:
+            if item not in source:
+                continue
+            else:
+                final.append(item)
+
+        if not len(final):
+            return source
+        else:
+            return final
 
     @staticmethod
     def get_config(runtime, directory):
@@ -52,6 +78,31 @@ class RuntimeConfigLoader:
                     return None
                 except ValidationError as e:
                     raise Exception('Validation error while reading runtime config for {}:{}'.format(runtime, e))
+
+    def get_matching_runtime(self, runtime_def):
+        """Find a matching defined runtime config and return it.
+
+        The returned config will have overridden values
+
+        Parameters
+        ---------
+        runtime_def: dict
+            The client side runtime definition
+        """
+        for config in self.runtime_configs:
+            if config['image'] == runtime_def['image']:
+                # Use tag to match
+                pattern = re.compile(config['tag'])
+                # First matching pattern is selected
+                if pattern.match(runtime_def['tag']):
+                    return {
+                        'name': runtime_def['name'],
+                        'image': config['image'],
+                        'tag': runtime_def['tag'],
+                        'modes': RuntimeConfigLoader.get_subset(config['modes'], runtime_def.get('modes', [])),
+                        'languages': RuntimeConfigLoader.get_subset(config['languages'], runtime_def.get('languages', []))
+                    }
+        return None
 
     def load(self, app_config):
         """Load runtime configurations

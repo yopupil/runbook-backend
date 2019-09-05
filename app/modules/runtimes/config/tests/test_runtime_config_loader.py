@@ -6,6 +6,7 @@ import shutil
 from contextlib import contextmanager
 
 from ..loader import RuntimeConfigLoader
+from ..schemas import SourceRuntimeConfigSchema
 
 __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
 
@@ -91,3 +92,59 @@ def test_runtime_config_loader_ignore_files():
 
         assert len(loader.runtime_configs) == 1
         assert loader.runtime_configs[0]['name'] == 'test-runtime'
+
+
+@pytest.mark.unit
+@pytest.mark.runtimes
+def test_loader_subset():
+
+    assert RuntimeConfigLoader.get_subset(['a', 'b'], ['c']) == ['a', 'b']
+    assert RuntimeConfigLoader.get_subset(['a', 'b'], ['a']) == ['a']
+    assert RuntimeConfigLoader.get_subset(['a', 'b'], ['a', 'b']) == ['a', 'b']
+
+
+@pytest.mark.unit
+@pytest.mark.runtimes
+def test_runtime_config_loader_matching_runtime():
+
+    loader = RuntimeConfigLoader()
+    loader.runtime_configs = [{
+        'name': 'test-runtime',
+        'image': 'python',
+        'tag': 'latest',
+        'languages': ['shell', 'python'],
+        'modes': ['files']
+    }, {
+        'name': 'test-runtime',
+        'image': 'mysql',
+        'tag': '(3.*)|(latest)',
+        'languages': ['shell', 'sql'],
+        'modes': ['interactive']
+    }]
+
+    assert loader.get_matching_runtime({
+        'name': 'tt',
+        'image': 'python',
+        'tag': 'latest',
+        'languages': ['shell']
+    }) == {
+        'name': 'tt',
+        'image': 'python',
+        'tag': 'latest',
+        'languages': ['shell'],
+        'modes': ['files']
+    }
+
+    assert loader.get_matching_runtime({
+        'name': 'tt',
+        'image': 'python',
+        'tag': 'latest',
+        'languages': ['wrong'],
+        'modes': ['incorrect']
+    }) == {
+       'name': 'tt',
+       'image': 'python',
+       'tag': 'latest',
+       'languages': ['shell', 'python'],
+       'modes': ['files']
+   }

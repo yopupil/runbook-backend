@@ -9,6 +9,7 @@ from flask_restplus_patched import Api
 
 from .namespace import Namespace
 from .http_exceptions import abort, api_abort
+from .socketio_namespace import SocketIONamespace
 
 from ..auth.decorators import authenticate_api
 

@@ -19,8 +19,9 @@ import logging
 import requests
 from flask import request, current_app
 from flask_socketio import Namespace, emit, SocketIO
+from marshmallow import ValidationError
 
-from app.modules.runtimes.config_loader import runtime_config_loader
+from app.modules.runtimes.config import runtime_config_loader, ClientRuntimeConfigSchema
 
 
 logger = logging.getLogger(__name__)
@@ -29,10 +30,12 @@ __author__ = 'Tharun Mathew Paul (tmpaul06@gmail.com)'
 
 
 class EmittedRuntimeEvents:
-    """An enum class representing emitted events for runtime namespace"""
+    """A class representing emitted events for runtimes namespace"""
+    INVALID_CONFIG = 'runtime_invalid_config'
+    NOT_FOUND = 'runtime_not_found'
     CREATED = 'runtime_created'
     LOG = 'runtime_log'
-    STATUS = 'status'
+    STATUS = 'runtime_status'
 
 
 class RuntimesNamespace(Namespace):
@@ -42,20 +45,30 @@ class RuntimesNamespace(Namespace):
 
     def on_create_runtime(self, runtime_def):
         """Create a new runtime with the provided data"""
-
+        sid = request.sid
         # Try to find a matching runtime.
         # Runtimes are loaded by reading .unklearn.config files
+
+        try:
+            runtime_def = ClientRuntimeConfigSchema().load(runtime_def)
+
+            # Get the final runtime def with client side overrides and dockerfile if set
+            final_runtime_def = runtime_config_loader.get_matching_runtime(runtime_def)
+
+            if final_runtime_def is None:
+                return emit(EmittedRuntimeEvents.NOT_FOUND, {
+                    'config': runtime_def,
+                    'message': 'Cannot find a runtime for the given runtime config.'
+                })
+
+            # Start the runtime using docker
+            container = runtime_handler.create(final_runtime_def)
+
+        except ValidationError:
+            # Invalid config, return error to client
+            return self.socketio.emit(EmittedRuntimeEvents.INVALID_CONFIG,
+                                      runtime_def, namespace=self.namespace, room=sid)
         runtime = runtime_config_loader.match_runtime(runtime_def)
-
-        # Use the runtime's Dockerfile.template to generate a dockerfile
-        runtime.docker_file_template
-
-        # Use the Dockerfile.template to create the runtime
-
-        # Wait for the runtime health to return 200.
-        # Ports => Proxied ports with specified protocol
-        # Proxy: proxy ports from container so that front-end can talk to it via a proxy.
-        # localhost:8763/portals/flask_runtime_id/web => goes to [flask app]
 
         # Processing dependencies
 
@@ -63,7 +76,7 @@ class RuntimesNamespace(Namespace):
         # These commands will setup the REPL code.
 
         # Create a new kernel using docker SDK
-        sid = request.sid
+
         logger.info('Creating {runtime} for socket {socket}'.format(runtime=runtime_def['name'], socket=sid))
 
         # Find registered kernel creators, and run them when we need to start the container

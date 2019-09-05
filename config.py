@@ -22,9 +22,7 @@ class BaseConfig(object):
 
     ENABLED_MODULES = (
       'api',
-      'runtimes',
-      'cells',
-      'code_files'
+      'notebooks'
     )
 
     STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')

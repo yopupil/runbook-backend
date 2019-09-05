@@ -76,5 +76,3 @@ class CodeFilesNamespace(Namespace):
                'error': 'Cannot find kernel {}'.format(kernel),
                'output': ''
             }, namespace=self.namespace, room=sid)
-
-
