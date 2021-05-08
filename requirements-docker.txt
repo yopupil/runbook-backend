@@ -42,7 +42,7 @@ marshmallow_enum==1.4.1
 
 #socket io
 flask-socketio==3.3.2
-eventlet==0.24.1
+eventlet==0.31.0
 
 SQLAlchemy-Utils==0.33.9
 python-slugify==3.0.2
